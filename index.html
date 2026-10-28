@@ -1,10 +1,212 @@
+
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>My First Website</title>
-  </head>
-            <body>
-              <h1>Hello World!</h1>
-              <p>This is my very first website.</p>
-            </body>
-          </html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My First Website</title>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      padding: 0 20px;
+      max-width: 900px;
+      color: #222;
+      background: #fff;
+    }
+
+    h1 {
+      color: #2563eb;
+    }
+
+    #chart {
+      width: 100%;
+      margin-top: 30px;
+    }
+
+    #chart svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .bar {
+      fill: #3b82f6;
+      transition: fill 0.2s;
+    }
+
+    .bar:hover {
+      fill: #1d4ed8;
+    }
+
+    .axis text {
+      font-size: 13px;
+      fill: #444;
+    }
+
+    .axis path,
+    .axis line {
+      stroke: #bbb;
+    }
+
+    .value-label {
+      font-size: 14px;
+      font-weight: bold;
+      text-anchor: middle;
+      fill: #222;
+    }
+
+    .chart-title {
+      font-size: 20px;
+      font-weight: bold;
+      text-anchor: middle;
+      fill: #222;
+    }
+
+    .grid line {
+      stroke: #e5e7eb;
+      stroke-dasharray: 3, 3;
+    }
+
+    .grid path {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Hello World!</h1>
+  <p>This is my very first website.</p>
+
+  <div id="chart"></div>
+
+  <script>
+    const data = [
+      { name: "A", value: 1 },
+      { name: "B", value: 5 },
+      { name: "C", value: 8 },
+      { name: "D", value: 10 }
+    ];
+
+    function drawChart() {
+      const container = document.querySelector("#chart");
+      const width = container.clientWidth;
+      const height = 420;
+
+      const margin = {
+        top: 65,
+        right: 25,
+        bottom: 60,
+        left: 55
+      };
+
+      // Clear previous chart when resizing.
+      d3.select("#chart").selectAll("*").remove();
+
+      const svg = d3.select("#chart")
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img")
+        .attr("aria-label", "Bar chart showing values for categories A through D");
+
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const chart = svg.append("g")
+        .attr("transform",
+          `translate(${margin.left},${margin.top})`);
+
+      // Chart title.
+      svg.append("text")
+        .attr("class", "chart-title")
+        .attr("x", width / 2)
+        .attr("y", 30)
+        .text("Values by Category");
+
+      // Scales.
+      const x = d3.scaleBand()
+        .domain(data.map(d => d.name))
+        .range([0, innerWidth])
+        .padding(0.3);
+
+      const y = d3.scaleLinear()
+        .domain([0, 12])
+        .nice()
+        .range([innerHeight, 0]);
+
+      // Horizontal grid lines.
+      chart.append("g")
+        .attr("class", "grid")
+        .call(
+          d3.axisLeft(y)
+            .ticks(6)
+            .tickSize(-innerWidth)
+            .tickFormat("")
+        );
+
+      // Bars.
+      chart.selectAll(".bar")
+        .data(data)
+        .join("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.name))
+        .attr("y", d => y(d.value))
+        .attr("width", x.bandwidth())
+        .attr("height", d => innerHeight - y(d.value))
+        .attr("rx", 4);
+
+      // Value labels above each bar.
+      chart.selectAll(".value-label")
+        .data(data)
+        .join("text")
+        .attr("class", "value-label")
+        .attr("x", d => x(d.name) + x.bandwidth() / 2)
+        .attr("y", d => y(d.value) - 8)
+        .text(d => d.value);
+
+      // X-axis.
+      chart.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(x));
+
+      // Y-axis.
+      chart.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y).ticks(6));
+
+      // Y-axis label.
+      chart.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#444")
+        .attr("font-size", 13)
+        .text("Value");
+
+      // X-axis label.
+      chart.append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 45)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#444")
+        .attr("font-size", 13)
+        .text("Category");
+    }
+
+    // Render after the page has loaded.
+    window.addEventListener("load", drawChart);
+
+    // Redraw when the viewport changes.
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(drawChart, 100);
+    });
+  </script>
+</body>
+</html>
